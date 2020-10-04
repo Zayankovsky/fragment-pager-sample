@@ -1,53 +1,65 @@
 package com.yandex.mobile.pager
 
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.fragment_main.view.*
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.adapter.FragmentViewHolder
 
 class MainAdapter(
-    private val limiter: Limiter,
-) : ListAdapter<Int, MainViewHolder>(MainDiffItemCallback()) {
+    private val fragmentManager: FragmentManager,
+    lifecycle: Lifecycle,
+) : FragmentStateAdapter(fragmentManager, lifecycle) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MainViewHolder {
-        val layoutInflater = LayoutInflater.from(parent.context)
-        return MainViewHolder(layoutInflater.inflate(R.layout.fragment_main, parent, false))
+    private val currentList = arrayListOf<Int>()
+
+    override fun createFragment(position: Int): Fragment {
+        return MainFragment.create(currentList[position])
     }
 
-    override fun onBindViewHolder(holder: MainViewHolder, position: Int) {
-        holder.bind(getItem(position))
+    override fun onBindViewHolder(holder: FragmentViewHolder, position: Int, payloads: List<Any>) {
+        if (payloads.isEmpty()) return super.onBindViewHolder(holder, position, payloads)
+        val fragment = fragmentManager.findFragmentByTag("f${holder.itemId}")
+        if (fragment !is MainFragment) return super.onBindViewHolder(holder, position, payloads)
+        fragment.setChildCount(currentList[position])
     }
 
-    override fun onViewAttachedToWindow(holder: MainViewHolder) {
-        limiter.addContent(holder.content)
+    override fun getItemCount(): Int {
+        return currentList.size
     }
 
-    override fun onViewDetachedFromWindow(holder: MainViewHolder) {
-        limiter.removeContent(holder.content)
-    }
-}
-
-class MainViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
-    val content: LinearLayout = itemView.content
-    private val context = content.context
-
-    fun bind(item: Int) {
-        val childCount = content.childCount
-        when {
-            childCount < item -> {
-                repeat(item - childCount) { View.inflate(context, R.layout.text_main, content) }
-            }
-            childCount > item -> content.removeViews(item, childCount - item)
-        }
+    fun submitList(list: List<Int>) {
+        val callback = MainDiffCallback(currentList, list)
+        val diff = DiffUtil.calculateDiff(callback)
+        currentList.clear()
+        currentList.addAll(list)
+        diff.dispatchUpdatesTo(this)
     }
 }
 
-private class MainDiffItemCallback : DiffUtil.ItemCallback<Int>() {
-    override fun areItemsTheSame(oldItem: Int, newItem: Int) = oldItem == newItem
-    override fun areContentsTheSame(oldItem: Int, newItem: Int) = true
+private class MainDiffCallback(
+    private val oldList: List<Int>,
+    private val newList: List<Int>,
+) : DiffUtil.Callback() {
+
+    override fun getOldListSize(): Int {
+        return oldList.size
+    }
+
+    override fun getNewListSize(): Int {
+        return newList.size
+    }
+
+    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        return oldItemPosition == newItemPosition
+    }
+
+    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        return oldList[oldItemPosition] == newList[newItemPosition]
+    }
+
+    override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
+        return newList[newItemPosition]
+    }
 }

@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         val padding = (30 * resources.displayMetrics.density).toInt()
         recycler.updatePaddingRelative(start = padding, end = padding)
 
-        val adapter = MainAdapter(limiter)
+        val adapter = MainAdapter(supportFragmentManager, lifecycle)
         adapter.submitList(listOf(1, 3, 5, 7, 9, 7, 5, 3, 1))
         pager.adapter = adapter
     }

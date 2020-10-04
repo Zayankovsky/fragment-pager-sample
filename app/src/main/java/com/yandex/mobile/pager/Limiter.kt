@@ -8,22 +8,43 @@ import androidx.core.view.doOnPreDraw
 
 class Limiter(context: Context, attrs: AttributeSet?) : FrameLayout(context, attrs) {
 
-    private val contentViews = arrayListOf<View>()
+    private val attachedContentViews = arrayListOf<View>()
+
+    private val attachStateChangeListener = object : OnAttachStateChangeListener {
+
+        override fun onViewAttachedToWindow(v: View) {
+            addAttachedContent(v)
+        }
+
+        override fun onViewDetachedFromWindow(v: View) {
+            removeAttachedContent(v)
+        }
+    }
 
     fun addContent(view: View) {
-        contentViews.add(view)
-        safelyRequestLayout()
+        view.addOnAttachStateChangeListener(attachStateChangeListener)
+        if (view.isAttachedToWindow) addAttachedContent(view)
     }
 
     fun removeContent(view: View) {
-        contentViews.remove(view)
+        view.removeOnAttachStateChangeListener(attachStateChangeListener)
+        if (view.isAttachedToWindow) removeAttachedContent(view)
+    }
+
+    private fun addAttachedContent(view: View) {
+        attachedContentViews.add(view)
+        safelyRequestLayout()
+    }
+
+    private fun removeAttachedContent(view: View) {
+        attachedContentViews.remove(view)
         safelyRequestLayout()
     }
 
     override fun onMeasure(widthSpec: Int, heightSpec: Int) {
         val attachedContentViews = attachedContentViews.toList()
         super.onMeasure(widthSpec, heightSpec)
-        val maxContentHeight = contentViews.maxOfOrNull { child ->
+        val maxContentHeight = attachedContentViews.maxOfOrNull { child ->
             val childWidthSpec = MeasureSpec.makeMeasureSpec(child.measuredWidth, MeasureSpec.EXACTLY)
             child.measure(childWidthSpec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
             child.measuredHeight
