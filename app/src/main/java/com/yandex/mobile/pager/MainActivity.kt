@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             Toast.makeText(this, "Hello, World!", Toast.LENGTH_SHORT).show()
         }
 
-        val adapter = MainAdapter()
+        val adapter = MainAdapter(limiter)
         adapter.submitList(listOf(1, 3, 5, 7, 9, 7, 5, 3, 1))
         pager.adapter = adapter
     }

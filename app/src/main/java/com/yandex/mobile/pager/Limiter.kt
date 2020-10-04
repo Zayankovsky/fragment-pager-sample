@@ -3,32 +3,32 @@ package com.yandex.mobile.pager
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
+import android.widget.FrameLayout
 import androidx.core.view.doOnPreDraw
-import androidx.recyclerview.widget.RecyclerView
 
-class MainRecyclerView(context: Context, attrs: AttributeSet?) : RecyclerView(context, attrs) {
+class Limiter(context: Context, attrs: AttributeSet?) : FrameLayout(context, attrs) {
 
-    private val children = arrayListOf<View>()
+    private val contentViews = arrayListOf<View>()
 
-    override fun onChildAttachedToWindow(child: View) {
-        children.add(child)
+    fun addContent(view: View) {
+        contentViews.add(view)
         safelyRequestLayout()
     }
 
-    override fun onChildDetachedFromWindow(child: View) {
-        children.remove(child)
+    fun removeContent(view: View) {
+        contentViews.remove(view)
         safelyRequestLayout()
     }
 
     override fun onMeasure(widthSpec: Int, heightSpec: Int) {
-        val children = children
+        val attachedContentViews = attachedContentViews.toList()
         super.onMeasure(widthSpec, heightSpec)
-        val maxChildHeight = children.maxOfOrNull { child ->
+        val maxContentHeight = contentViews.maxOfOrNull { child ->
             val childWidthSpec = MeasureSpec.makeMeasureSpec(child.measuredWidth, MeasureSpec.EXACTLY)
             child.measure(childWidthSpec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
             child.measuredHeight
         } ?: 0
-        super.onMeasure(widthSpec, MeasureSpec.makeMeasureSpec(maxChildHeight, MeasureSpec.EXACTLY))
+        super.onMeasure(widthSpec, MeasureSpec.makeMeasureSpec(maxContentHeight, MeasureSpec.EXACTLY))
     }
 
     private fun safelyRequestLayout() {

@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_main.view.*
 
-class MainAdapter : ListAdapter<Int, MainViewHolder>(MainDiffItemCallback()) {
+class MainAdapter(
+    private val limiter: Limiter,
+) : ListAdapter<Int, MainViewHolder>(MainDiffItemCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MainViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -17,6 +19,14 @@ class MainAdapter : ListAdapter<Int, MainViewHolder>(MainDiffItemCallback()) {
 
     override fun onBindViewHolder(holder: MainViewHolder, position: Int) {
         holder.bind(getItem(position))
+    }
+
+    override fun onViewAttachedToWindow(holder: MainViewHolder) {
+        limiter.addContent(holder.itemView)
+    }
+
+    override fun onViewDetachedFromWindow(holder: MainViewHolder) {
+        limiter.removeContent(holder.itemView)
     }
 }
 
