@@ -3,6 +3,7 @@ package com.yandex.mobile.pager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -22,17 +23,17 @@ class MainAdapter(
     }
 
     override fun onViewAttachedToWindow(holder: MainViewHolder) {
-        limiter.addContent(holder.itemView)
+        limiter.addContent(holder.content)
     }
 
     override fun onViewDetachedFromWindow(holder: MainViewHolder) {
-        limiter.removeContent(holder.itemView)
+        limiter.removeContent(holder.content)
     }
 }
 
 class MainViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-    private val content = itemView.content
+    val content: LinearLayout = itemView.content
     private val context = content.context
 
     fun bind(item: Int) {
